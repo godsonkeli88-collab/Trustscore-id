@@ -83,7 +83,7 @@ const api = {
     if (!res.ok) throw new Error(data.error || "Request failed");
     return data;
   },
-  post: async (path, body, token) => {
+ post: async (path, body, token) => {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: {
@@ -93,13 +93,15 @@ const api = {
     body: JSON.stringify(body),
   });
 
-  const text = await res.text();
-  let data = {};
+  const contentType = res.headers.get("content-type");
 
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(text || "Server returned invalid response");
+  let data;
+
+  if (contentType && contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    const text = await res.text();
+    throw new Error(text || "Server returned non-JSON response");
   }
 
   if (!res.ok) throw new Error(data.error || "Request failed");
