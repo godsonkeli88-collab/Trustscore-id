@@ -84,15 +84,27 @@ const api = {
     return data;
   },
   post: async (path, body, token) => {
-    const res = await fetch(`${API_BASE}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Request failed");
-    return data;
-  },
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await res.text();
+  let data = {};
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(text || "Server returned invalid response");
+  }
+
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data;
+},
   patch: async (path, body, token) => {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "PATCH",
